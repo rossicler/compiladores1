@@ -6,28 +6,9 @@ class Lexico(object):
         self.p_stack = []
         self.tokens = []
         self.reserved_words = [
-            'program',
-            'input',
-            'output',
-            ',',
-            '(',
-            ')',
-            ';',
-            'var',
-            'integer',
-            'begin',
-            'end',
-            '.',
-            'read',
-            ':=',
-            '>',
-            '>=',
-            '<',
-            '<=',
-            '<>',
-            ':',
-            'while',
-            'do'
+            'program','input','output',',','(',')',
+            ';','var','integer','begin','end','.','read',
+            ':=','>','>=','<','<=','<>',':','while','do'
         ]
         
 
@@ -62,8 +43,6 @@ class Lexico(object):
 
         texts = texts.split(" ")
         texts = list(filter(None, texts))
-
-        import pdb; pdb.set_trace()
         
         for text in texts:
             if text in self.reserved_words:
