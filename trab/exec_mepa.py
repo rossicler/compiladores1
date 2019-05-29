@@ -1,13 +1,50 @@
+import sys
+
 class ExecMEPA():
     def __init__(self):
         self.D = []
         self.M = []
         self.s = -1
         self.i = 0
+        self.my_file_list = []
+        self.n_param = [
+            # 0 params
+            ["SOMA", "SUBT", "MULT", "DIVI", "INVR"
+            "CONJ", "DISJ", "NEGA", "CMME", "CMMA",
+            "CMIG", "CMDG", "CMEG", "CMAG", "NADA",
+            "PARA", "LEIT", "IMPR", "INPP"],
+            # 1 param
+            ["DSVS", "DSVF", "AMEM", "DMEN", "ENPR"],
+            # 2 params
+            ["CRCT"], ["CRVL", "CREN", "ARMZ", "CRVI",
+            "ARMI", "ENRT", "CHPR", "RTPR"],
+            # 3 params
+            ["DSVR"]
+        ]
 
     
     def main(self):
-        print("AAAAAA")
+        with open(sys.argv[1], 'r') as my_file:
+            self.my_file_list = my_file.read().split("\n")
+            self.my_file_list = list(filter(None, self.my_file_list))
+        instruction = self.__get_instruction_string(self.my_file_list[2])
+        
+
+    def __execute_instruction(self, instruction, line):
+        if instruction in self.n_param[0]:
+            globals()[instruction]()
+        else if instruction in self.n_param[1]:
+            position = line.find(instruction)
+            param_1 = line[:position]
+            param_1 = param_1.strip()
+            globals()[instruction](param_1)
+
+
+    def __get_instruction_string(self, line):
+        instruction = line.lstrip()
+        space_position = instruction.find(" ")
+        instruction = instruction[:space_position]
+        return instruction
 
 
     def CRCT(self, k):
@@ -144,11 +181,11 @@ class ExecMEPA():
         self.s -= 1
 
     
-    def NADA():
+    def NADA(self):
         pass
 
 
-    def PARA():
+    def PARA(self):
         exit()
 
 
@@ -204,7 +241,6 @@ class ExecMEPA():
             self.D[temp1] = self.M[self.D[temp1] - 1]
             temp1 = temp2
         self.i = p
-
 
 prog = ExecMEPA()
 prog.main()
