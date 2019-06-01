@@ -47,13 +47,6 @@ class ExecMEPA():
             line = self.my_file_list[self.i].strip()
             instruction = self.__get_instruction_string(self.my_file_list[self.i])
             self.__execute_instruction(instruction, line)
-            print("M:")
-            print(self.M[:30])
-            print("D:")
-            print(self.D[:30])
-            print("I: " + str(self.i))
-            print("S: " + str(self.s))
-            print("----------------------------------------------------------------------")
             self.i += 1
 
 
