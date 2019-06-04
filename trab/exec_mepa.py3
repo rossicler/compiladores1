@@ -47,6 +47,7 @@ class ExecMEPA():
             line = self.my_file_list[self.i].strip()
             instruction = self.__get_instruction_string(self.my_file_list[self.i])
             self.__execute_instruction(instruction, line)
+            self.__check_underflow()
             self.i += 1
 
 
@@ -116,7 +117,7 @@ class ExecMEPA():
 
 
     def __check_underflow(self):
-        if self.s < 0:
+        if self.s < -1:
             error_msg = "Linha " + str(self.i+1) + ": RunTime error. Stack underflow"
             print(error_msg)
             exit()
@@ -153,7 +154,7 @@ class ExecMEPA():
 
 
     def SOMA(self):
-        self.M[self.s - 1] = self.M[self.s - 1] + self.M[self.s]
+        self.M[self.s - 1] = int(self.M[self.s - 1]) + int(self.M[self.s])
         self.s -= 1
 
     
@@ -249,8 +250,9 @@ class ExecMEPA():
 
 
     def DSVF(self, p):
+        label = self.__get_label_value(p)
         if self.M[self.s] == 0:
-            self.i = self.__get_label_value(p)
+            self.i = label
         else:
             pass
         self.s -= 1
@@ -280,7 +282,6 @@ class ExecMEPA():
 
     def DMEM(self, n):
         self.s -= n
-        self.__check_underflow()
 
     
     def INPP(self):
