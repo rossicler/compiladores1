@@ -268,7 +268,7 @@ class ExecMEPA():
 
     def LEIT(self):
         self.s = self.s + 1
-        self.M[self.s] = input()
+        self.M[self.s] = int(input())
 
 
     def IMPR(self):
