@@ -1,5 +1,6 @@
 import re
 import os
+import sys
 
 class Lexico(object):
     def __init__(self):
@@ -8,22 +9,22 @@ class Lexico(object):
         self.reserved_words = [
             'program','input','output',',','(',')',
             ';','var','integer','begin','end','.','read',
-            ':=','>','>=','<','<=','<>',':','while','do'
+            ':=','>','>=','<','<=','<>',':','while','do',
+            '+', '-', 'write', 'read'
         ]
+        self.my_file_list = []
         
 
-    def main(self):
-        # Main function
-        texts = input()
+    def build(self):        
+        with open(sys.argv[1], 'r') as my_file:
+            self.my_file_list = my_file.read().split("\n")
         cont = 0
-#        for index, character in enumerate(texts):
-#            if character in ["(", ">", "<", ",", ")", ";"]:
-#                texts = texts[:index+cont] + " " + texts[index+cont:]
-#                cont += 1
-#                texts = texts[:index+cont+1] + " " + texts[index+cont+1:]
-#                cont += 1
+
+        texts = ""
+        for line in self.my_file_list:
+            texts += line + " "
         
-        simbols = ["(", ">=", "<=", "<>", ">", "<", ",", ")", ";", ":="]
+        simbols = ["(", ">=", "<=", "<>", ">", "<", ",", ")", ";", ":=", "+", "-", '.']
 
         for simbol in simbols:
             if simbol is ">":
@@ -56,9 +57,71 @@ class Lexico(object):
                     'value': text
                 })
 
-        for obj in self.tokens:
-            print(obj)
+
+    def get_token_head(self):
+        head, *tail = self.tokens
+        self.tokens = tail
+        return head
+
+    
+    def print_tokens(self):
+        print(self.tokens)
 
 
-prog = Lexico()
+class Sintatico(object):
+    def __init__(self):
+        self.lexico = []
+        self.vars = []
+        self.mepa = []
+
+    def main(self):
+        self.lexico = Lexico()
+        self.lexico.build()
+
+    def program(self):
+        token = self.lexico.get_token_head()
+        if token.value != "program":
+            self.print_error(token.value, "program")
+
+        self.read_label()
+
+        token = self.lexico.get_token_head()
+        if token.value != "(":
+            self.print_error(token.value, "(")
+
+        self.read_label()
+
+        token = self.lexico.get_token_head()
+        while token.value != ')':
+            if token.value != ',':
+                self.print_error(token.value, ",")
+            self.read_label()
+            token = self.lexico.get_token_head()
+
+        token = self.lexico.get_token_head()
+        if token.value != ';':
+            self.print_error(token.value, ";")
+        self.mepa.append("INPP")
+
+    def print_error(self, token, expected_token):
+        print("Found an error next to " + token + " it was expected " + expected_token)
+        exit()
+
+    def print_error_label(self, token):
+        print("Found an error next to " + token + " this label already exists")
+        exit()
+
+    def check_label(self, label):
+        if label[0].isdigit():
+            self.print_error(token.value, "a valid label")
+        if label in self.vars:
+            self.print_error_label(label)
+
+    def read_label(self):
+        token = self.lexico.get_token_head()
+        self.check_label(token.value)
+        self.vars.append(token.value)
+
+
+prog = Sintatico()
 prog.main()
