@@ -40,12 +40,14 @@ class ExecMEPA():
             self.my_file_list = my_file.read().split("\n")
             self.my_file_list = list(filter(None, self.my_file_list))
         self.__save_all_labels()
-        
+
         self.__init_mem()
         instruction = ""
         while instruction != "PARA":
             line = self.my_file_list[self.i].strip()
             instruction = self.__get_instruction_string(self.my_file_list[self.i])
+            if instruction == "ARMZ":
+                import pdb;pdb.set_trace()
             self.__execute_instruction(instruction, line)
             self.__check_underflow()
             self.i += 1

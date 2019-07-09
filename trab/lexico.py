@@ -38,6 +38,12 @@ class Lexico(object):
                     position = texts.find(simbol)
                     if not (texts[position+1] == ">" or texts[position+1] == "="):
                         texts = texts[:position] + " " + texts[position:]
+            elif simbol is ":":
+                num = texts.count(simbol)
+                for index in range(0, num):
+                    position = texts.find(simbol)
+                    if not (texts[position+1] == "="):
+                        texts = texts[:position] + " " + texts[position:]
             else:
                 texts = texts.replace(simbol, ' ' + simbol + ' ')
 
@@ -123,7 +129,7 @@ class Sintatico(object):
         elif token['value'] == "begin":
             self.begin_function()
         else:
-            self.print_error(token=token['value'])        
+            self.print_error(token=token['value'])
         token = self.lexico.get_token_head()
         if token['value'] != '.':
             self.print_error(token['value'], '.')
@@ -171,7 +177,7 @@ class Sintatico(object):
         token = self.lexico.get_token_head()
         if token['cod'] == 'reserved_word':
             if token['value'] == 'end':
-                pass
+                return
             elif token['value'] not in self.commands:
                 self.print_error(token['value'])
             self.read_command_function(token)
@@ -183,7 +189,7 @@ class Sintatico(object):
         if token['value'] == 'read':
             self.read_function()
         elif token['value'] == 'write':
-            pass
+            self.write_function()
         else:
             self.print_error(token['value'])
 

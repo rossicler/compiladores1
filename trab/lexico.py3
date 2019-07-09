@@ -23,7 +23,7 @@ class Lexico(object):
         for line in self.my_file_list:
             texts += line + " "
         
-        simbols = ["(", ">=", "<=", "<>", ">", "<", ",", ")", ";", ":=", "+", "-", '.']
+        simbols = ["(", ">=", "<=", "<>", ">", "<", ",", ")", ";", ":=", "+", "-", '.', ':']
 
         for simbol in simbols:
             if simbol is ">":
@@ -37,6 +37,12 @@ class Lexico(object):
                 for index in range(0, num):
                     position = texts.find(simbol)
                     if not (texts[position+1] == ">" or texts[position+1] == "="):
+                        texts = texts[:position] + " " + texts[position:]
+            elif simbol is ":":
+                num = texts.count(simbol)
+                for index in range(0, num):
+                    position = texts.find(simbol)
+                    if not (texts[position+1] == "="):
                         texts = texts[:position] + " " + texts[position:]
             else:
                 texts = texts.replace(simbol, ' ' + simbol + ' ')
@@ -64,4 +70,9 @@ class Lexico(object):
 
     
     def print_tokens(self):
-        print(self.tokens)
+        for token in self.tokens:
+            print(token)
+
+prog = Lexico()
+prog.build()
+prog.print_tokens()
