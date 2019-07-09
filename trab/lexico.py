@@ -114,8 +114,9 @@ class Sintatico(object):
         self.mepa.append("INPP")
         self.block()
 
-    def block(self):
-        token = self.lexico.get_token_head()
+    def block(self, token=""):
+        if not token:
+            token = self.lexico.get_token_head()
         if token['value'] == "label":
             self.label_function()
         elif token['value'] == "type":
@@ -145,8 +146,9 @@ class Sintatico(object):
     def type_function(self):
         pass
 
-    def var_function(self):
-        token = self.lexico.get_token_head()
+    def var_function(self, token=""):
+        if not token:
+            token = self.lexico.get_token_head()
         var_labels = [token['value']]
         token = self.lexico.get_token_head()
         while token['value'] != ':':
@@ -162,7 +164,11 @@ class Sintatico(object):
         token = self.lexico.get_token_head()
         if token['value'] != ';':
             self.print_error(token['value'], ';')
-        self.block()
+        token = self.lexico.get_token_head()
+        if token['cod'] == 'reserved_word':
+            self.block(token)
+        else:
+            self.var_function(token)
 
     def procedure_function(self):
         pass
