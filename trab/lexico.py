@@ -4,7 +4,6 @@ import sys
 
 class Lexico(object):
     def __init__(self):
-        self.p_stack = []
         self.tokens = []
         self.reserved_words = [
             'program','input','output',',','(',')',
@@ -24,7 +23,7 @@ class Lexico(object):
         for line in self.my_file_list:
             texts += line + " "
         
-        simbols = ["(", ">=", "<=", "<>", ">", "<", ",", ")", ";", ":=", "+", "-", '.']
+        simbols = ["(", ">=", "<=", "<>", ">", "<", ",", ")", ";", ":=", "+", "-", '.', ':']
 
         for simbol in simbols:
             if simbol is ">":
@@ -73,55 +72,196 @@ class Sintatico(object):
         self.lexico = []
         self.vars = []
         self.mepa = []
+        self.commands = [
+            'read',
+            'write'
+        ]
 
     def main(self):
         self.lexico = Lexico()
         self.lexico.build()
+        self.program()
 
     def program(self):
         token = self.lexico.get_token_head()
-        if token.value != "program":
-            self.print_error(token.value, "program")
+        if token['value'] != "program":
+            self.print_error(token['value'], "program")
 
-        self.read_label()
-
-        token = self.lexico.get_token_head()
-        if token.value != "(":
-            self.print_error(token.value, "(")
-
-        self.read_label()
+        self.read_label('program')
 
         token = self.lexico.get_token_head()
-        while token.value != ')':
-            if token.value != ',':
-                self.print_error(token.value, ",")
-            self.read_label()
+        if token['value'] != "(":
+            self.print_error(token['value'], "(")
+
+        self.read_label('program_arguments')
+
+        token = self.lexico.get_token_head()
+        while token['value'] != ')':
+            if token['value'] != ',':
+                self.print_error(token['value'], ",")
+            self.read_label('program')
             token = self.lexico.get_token_head()
 
         token = self.lexico.get_token_head()
-        if token.value != ';':
-            self.print_error(token.value, ";")
+        if token['value'] != ';':
+            self.print_error(token['value'], ";")
         self.mepa.append("INPP")
+        self.block()
 
-    def print_error(self, token, expected_token):
-        print("Found an error next to " + token + " it was expected " + expected_token)
+    def block(self):
+        token = self.lexico.get_token_head()
+        if token['value'] == "label":
+            self.label_function()
+        elif token['value'] == "type":
+            self.type_function()
+        elif token['value'] == "var":
+            self.var_function()
+        elif token['value'] == "procedure":
+            self.procedure_function()
+        elif token['value'] == "function":
+            self.function_declaration()
+        elif token['value'] == "begin":
+            self.begin_function()
+        else:
+            self.print_error(token=token['value'])        
+        token = self.lexico.get_token_head()
+        if token['value'] != '.':
+            self.print_error(token['value'], '.')
+        self.mepa.append("PARA")
+        # write the mepa array to a file
+        print("Aceito")
+        exit()
+
+
+    def label_function(self):
+        pass
+
+    def type_function(self):
+        pass
+
+    def var_function(self):
+        token = self.lexico.get_token_head()
+        var_labels = [token['value']]
+        token = self.lexico.get_token_head()
+        while token['value'] != ':':
+            if token['value'] != ',':
+                self.print_error(token['value'], ",")
+            label = self.read_var_label()
+            var_labels.append(label)
+            token = self.lexico.get_token_head()
+        token = self.lexico.get_token_head()
+        if token['value'] != 'integer':
+            self.print_error(token=token['value'])
+        self.bulk_insert_labels(var_labels, 'integer')
+        token = self.lexico.get_token_head()
+        if token['value'] != ';':
+            self.print_error(token['value'], ';')
+        self.block()
+
+    def procedure_function(self):
+        pass
+
+    def function_declaration(self):
+        pass
+    
+    def begin_function(self):
+        self.command_without_rotule_function()
+
+    def command_without_rotule_function(self):
+        token = self.lexico.get_token_head()
+        if token['cod'] == 'reserved_word':
+            if token['value'] == 'end':
+                pass
+            elif token['value'] not in self.commands:
+                self.print_error(token['value'])
+            self.read_command_function(token)
+        else:
+            self.check_label(token['value'])
+            # do something
+    
+    def read_command_function(self, token):
+        if token['value'] == 'read':
+            self.read_function()
+        elif token['value'] == 'write':
+            pass
+        else:
+            self.print_error(token['value'])
+
+    def read_function(self):
+        token = self.lexico.get_token_head()
+        if token['value'] != '(':
+            self.print_error(token['value'], '(')
+        token = self.lexico.get_token_head()
+        self.check_if_label_exists(token['value'])
+        token = self.lexico.get_token_head()
+        if token['value'] != ')':
+            self.print_error(token['value'], ')')
+        token = self.lexico.get_token_head()
+        if token['value'] != ';':
+            self.print_error(token['value'], ';')
+        # generate MEPA code to read the value
+        self.command_without_rotule_function()
+
+    def write_function(self):
+        token = self.lexico.get_token_head()
+        if token['value'] != '(':
+            self.print_error(token['value'], '(')
+        token = self.lexico.get_token_head()
+        self.check_if_label_exists(token['value'])
+        token = self.lexico.get_token_head()
+        if token['value'] != ')':
+            self.print_error(token['value'], ')')
+        token = self.lexico.get_token_head()
+        if token['value'] != ';':
+            self.print_error(token['value'], ';')
+        # generate MEPA code to write the value
+        self.command_without_rotule_function()        
+
+    def type(self):
+        pass
+
+    def print_error(self, token, expected_token=""):
+        self.lexico.print_tokens()
+        if expected_token:
+            print("Found an error next to '" + token + "' it was expected " + expected_token)
+        else:
+            print("Found an error next to '" + token + "' invalid token")
         exit()
 
     def print_error_label(self, token):
-        print("Found an error next to " + token + " this label already exists")
+        print("Found an error next to '" + token + "' this label already exists")
         exit()
 
     def check_label(self, label):
         if label[0].isdigit():
-            self.print_error(token.value, "a valid label")
-        if label in self.vars:
-            self.print_error_label(label)
+            self.print_error(token['value'], "a valid label")
+        for var in self.vars:
+            if label == var['label']:
+                self.print_error_label(label)
 
-    def read_label(self):
+    def check_if_label_exists(self, label):
+        exist = False
+        for var in self.vars:
+            if label == var['label']:
+                exist = True
+        if not exist:
+            self.print_error(label)
+
+    def read_label(self, type):
         token = self.lexico.get_token_head()
-        self.check_label(token.value)
-        self.vars.append(token.value)
+        self.check_label(token['value'])
+        self.vars.append({'label': token['value'], 'type': type})
 
+    def read_var_label(self):
+        token = self.lexico.get_token_head()
+        self.check_label(token['value'])
+        return token['value']
+
+    def bulk_insert_labels(self, labels, type):
+        for label in labels:
+            self.check_label(label)
+            self.vars.append({'label': label, 'type': type})
+            # needs to generate MEPA of the label if integer
 
 prog = Sintatico()
 prog.main()
