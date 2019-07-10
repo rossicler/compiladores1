@@ -80,7 +80,9 @@ class Sintatico(object):
         self.mepa = []
         self.commands = [
             'read',
-            'write'
+            'write',
+            'while',
+            'begin'
         ]
 
     def main(self):
@@ -113,6 +115,13 @@ class Sintatico(object):
             self.print_error(token['value'], ";")
         self.mepa.append("INPP")
         self.block()
+        token = self.lexico.get_token_head()
+        if token['value'] != '.':
+            self.print_error(token['value'], '.')
+        self.mepa.append("PARA")
+        # write the mepa array to a file
+        print("Aceito")
+        exit()
 
     def block(self, token=""):
         if not token:
@@ -131,14 +140,6 @@ class Sintatico(object):
             self.begin_function()
         else:
             self.print_error(token=token['value'])
-        token = self.lexico.get_token_head()
-        if token['value'] != '.':
-            self.print_error(token['value'], '.')
-        self.mepa.append("PARA")
-        # write the mepa array to a file
-        print("Aceito")
-        exit()
-
 
     def label_function(self):
         pass
@@ -179,8 +180,9 @@ class Sintatico(object):
     def begin_function(self):
         self.command_without_rotule_function()
 
-    def command_without_rotule_function(self):
-        token = self.lexico.get_token_head()
+    def command_without_rotule_function(self, token=""):
+        if not token:
+            token = self.lexico.get_token_head()
         if token['cod'] == 'reserved_word':
             if token['value'] == 'end':
                 return
@@ -188,14 +190,23 @@ class Sintatico(object):
                 self.print_error(token['value'])
             self.read_command_function(token)
         else:
-            self.check_label(token['value'])
+            self.read_command_function(token)
             # do something
     
     def read_command_function(self, token):
-        if token['value'] == 'read':
+        if token['cod'] == 'label':
+            self.set_value_function(token)
+        elif token['value'] == 'read':
             self.read_function()
         elif token['value'] == 'write':
             self.write_function()
+        elif token['value'] == 'while':
+            self.while_function()
+        elif token['value'] == 'begin':
+            self.begin_function()            
+            token = self.lexico.get_token_head()
+            if token['value'] != ';':
+                self.print_error(token['value'], ';')
         else:
             self.print_error(token['value'])
 
@@ -227,7 +238,47 @@ class Sintatico(object):
         if token['value'] != ';':
             self.print_error(token['value'], ';')
         # generate MEPA code to write the value
-        self.command_without_rotule_function()        
+        self.command_without_rotule_function()      
+
+    def set_value_function(self, token):
+        self.check_if_label_exists(token['value'])
+        token = self.lexico.get_token_head()
+        if token['value'] != ':=':
+            self.print_error(token['value'], ':=')
+        token = self.lexico.get_token_head()
+        if token['cod'] != 'label':
+            self.print_error(token['value'], "a label that isn't a reserved word")
+        if not token['value'].isdigit():
+            self.check_if_label_exists(token['value'])
+        token = self.lexico.get_token_head()
+        if token['value'] != ';':
+            if not token['value'] in ['+', '-', 'or']:
+                self.print_error(token['value'], "one of the following, [-, +, or]")
+            token = self.lexico.get_token_head()
+            if not token['value'].isdigit():
+                self.check_if_label_exists(token['value'])
+            token = self.lexico.get_token_head()
+            if token['value'] != ';':
+                self.command_without_rotule_function(token)
+        # generate MEPA code to write the value
+        self.command_without_rotule_function()
+
+    def while_function(self):
+        self.expression_function()
+        token = self.lexico.get_token_head()
+        if token['value'] != 'do':
+            self.print_error(token['value'], "do")
+        self.command_without_rotule_function()
+        
+
+    def expression_function(self):
+        token = self.lexico.get_token_head()
+        self.check_if_label_exists(token['value'])
+        token = self.lexico.get_token_head()
+        if not token['value'] in ['=', '<>', '<', '<=', '>=', '>']:
+            self.print_error(token['value'], "a conditional reserved word")
+        token = self.lexico.get_token_head()
+        self.check_if_label_exists(token['value'])
 
     def type(self):
         pass
@@ -256,6 +307,7 @@ class Sintatico(object):
         for var in self.vars:
             if label == var['label']:
                 exist = True
+                break
         if not exist:
             self.print_error(label)
 
